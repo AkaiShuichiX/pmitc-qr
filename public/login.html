@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ระบบเช็คชื่อผ่าน QR Code</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+      h1 {
+        color: #007bff;
+        margin-bottom: 20px;
+      }
+      #video {
+        width: 100%;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+      .alert {
+        font-size: 1.1rem;
+      }
+      .result {
+        margin-top: 20px;
+      }
+      #loginForm {
+        display: block; /* Show login form initially */
+      }
+      #mainContent {
+        display: none; /* Hide main content initially */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-4">
+      <h1 class="text-center">ระบบเช็คชื่อเข้าเรียน</h1>
+
+      <!-- ฟอร์มเข้าสู่ระบบ -->
+      <div id="loginForm" class="mb-4">
+        <h2 class="text-center">เข้าสู่ระบบ</h2>
+        <form id="formLogin" onsubmit="return login(event)">
+          <div class="mb-3">
+            <label for="username" class="form-label">ชื่อผู้ใช้:</label>
+            <input type="text" id="username" class="form-control" required />
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">รหัสผ่าน:</label>
+            <input
+              type="password"
+              id="password"
+              class="form-control"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">เข้าสู่ระบบ</button>
+        </form>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script>
+      async function login(event) {
+        event.preventDefault(); // หยุดการรีเฟรชหน้าเว็บ
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        try {
+          const response = await fetch("/api/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ username, password }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+            // ตั้งค่า Cookie
+            document.cookie = `username=${username}; path=/; max-age=3600; samesite=strict`;
+            // เปลี่ยนเส้นทางไปยังหน้าหลัก
+            window.location.href = "index.html";
+          } else {
+            alert(data.message || "Login failed. Please try again.");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert("An error occurred. Please try again later.");
+        }
+      }
+
+      // ผูกฟังก์ชัน login กับการส่งฟอร์ม
+      document.getElementById("loginForm").addEventListener("submit", login);
+    </script>
+  </body>
+</html>

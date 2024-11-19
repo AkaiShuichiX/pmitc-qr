@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ระบบเช็คชื่อผ่าน QR Code</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+      h1 {
+        color: #007bff;
+        margin-bottom: 20px;
+      }
+      #video {
+        width: 100%;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+      .alert {
+        font-size: 1.1rem;
+      }
+      .result {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-4">
+      <h1 class="text-center">ระบบเช็คชื่อเข้าเรียน</h1>
+
+      <!-- เลือกระดับชั้นปี -->
+      <div class="mb-3">
+        <label for="level" class="form-label">เลือกระดับชั้นปี:</label>
+        <select
+          id="level"
+          class="form-select"
+          onchange="updateSubjectOptions()"
+        >
+          <!-- ชั้นจะถูกเพิ่มตามที่ตั้งค่าใน script.js -->
+        </select>
+      </div>
+
+      <!-- เลือกวิชา -->
+      <div class="mb-3">
+        <label for="subject" class="form-label">เลือกวิชา:</label>
+        <select id="subject" class="form-select">
+          <!-- รายวิชาจะถูกเพิ่มตามที่ตั้งค่าใน script.js -->
+        </select>
+      </div>
+
+      <div
+        class="modal fade"
+        id="resultModal"
+        tabindex="-1"
+        aria-labelledby="resultModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="resultModalLabel">ผลลัพธ์</h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body" id="resultModalBody">
+              <!-- ข้อความผลลัพธ์ -->
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                ปิด
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="result"
+        class="result alert alert-info"
+        style="display: none"
+      ></div>
+
+      <div class="text-center">
+        <video id="video" autoplay class="border"></video>
+      </div>
+
+      <!-- ปุ่มรายงานคนไม่เข้าเรียนถึงผู้ปกครอง -->
+      <div class="text-center mt-4">
+        <button id="reportButton" class="btn btn-danger">
+          รายงานคนไม่เข้าเรียนถึงผู้ปกครอง
+        </button>
+      </div>
+    </div>
+
+    <canvas id="canvas" style="display: none"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+    <script src="scripts.js"></script>
+  </body>
+</html>
