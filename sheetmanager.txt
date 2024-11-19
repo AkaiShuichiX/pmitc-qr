@@ -1,0 +1,65 @@
+function doPost(e) {
+    const data = JSON.parse(e.postData.contents);
+    const studentId = data.studentId; // สมมติว่าคุณส่งเลขประจำตัวในรูปแบบ JSON
+    const no = data.no;
+
+    // เลือก Google Sheet ตามข้อมูลวิชาที่ส่งมา
+    const sheetMap = {
+      "ปวช.1": {
+        "ชื่อวิชา 1": 'ไอดีของ Sheet 1',
+        "ชื่อวิชา 2": 'ไอดีของ Sheet 2'
+      },
+      "ปวช.2": {
+        "ชื่อวิชา 1": 'ไอดีของ Sheet 1',
+        "ชื่อวิชา 2": 'ไอดีของ Sheet 2'
+      },
+      "ปวช.3": {
+        "ชื่อวิชา 1": 'ไอดีของ Sheet 1',
+        "ชื่อวิชา 2": 'ไอดีของ Sheet 2'
+      }
+    };
+
+    let sheetId;
+    if (sheetMap[data.year] && sheetMap[data.year][data.subject]) {
+      sheetId = sheetMap[data.year][data.subject];
+      } else {
+        return ContentService.createTextOutput(JSON.stringify({
+          message: data.year && sheetMap[data.year] ? "วิชาที่ระบุไม่ถูกต้อง" : "ชั้นปีที่ระบุไม่ถูกต้อง"
+          }))
+          .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const sheet = SpreadsheetApp.openById(sheetId).getActiveSheet();
+
+    // ดึงข้อมูลเลขประจำตัวที่มีอยู่ในคอลัมน์ D
+    const existingIds = sheet.getRange('D2:D').getValues().flat();
+
+    let foundIndex = -1;
+
+    // ใช้ for loop เพื่อค้นหาเลขประจำตัว
+    for (let i = 0; i < existingIds.length; i++) {
+        if (existingIds[i].toString().trim() === studentId) {
+            foundIndex = i;
+            break; // ออกจาก loop เมื่อพบเลขประจำตัว
+        }
+    }
+
+    let output;
+
+    if (foundIndex === -1) {
+        // ถ้าไม่พบเลขประจำตัวในระบบ
+        output = { message: "ไม่พบเลขประจำตัวในระบบ" };
+    } else {
+        // ถ้าพบเลขประจำตัว
+        const actualRowIndex = foundIndex + 2; // +2 เพราะเริ่มที่แถวที่ 2
+        sheet.getRange(actualRowIndex, 1).setValue(new Date()); // อัปเดทเวลาที่คอลัมน์ A
+        sheet.getRange(actualRowIndex, 6).setValue(true); // อัปเดทสถานะให้เช็คบล็อกที่คอลัมน์ F
+        output = { message: "อัพเดทข้อมูลเรียบร้อย" };
+
+        // เปลี่ยนแถวที่ได้รับการอัปเดตเป็นสีเขียวอ่อน
+        sheet.getRange(actualRowIndex, 1, 1, sheet.getLastColumn()).setBackground('#e0f7fa');
+    }
+
+    return ContentService.createTextOutput(JSON.stringify(output))
+        .setMimeType(ContentService.MimeType.JSON);
+}
