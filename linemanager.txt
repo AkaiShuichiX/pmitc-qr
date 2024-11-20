@@ -1,0 +1,87 @@
+function doPost(e) {
+    const data = JSON.parse(e.postData.contents);
+    const year = data.year;
+    const subject = data.subject;
+
+    const sheetMap = {
+        'ชื่อวิชาที่ 1 ที่ตั้งใน Glitch': {
+            spreadsheetId: 'ไอดีของชีทที่ต้องการให้ตรวจสอบการเข้าเรียน',
+            botLineToken: 'โทเค็นของบอทที่สร้างใน https://developers.line.biz/console/',
+            botLineUserID: 'ไอดีของบอทที่สร้างใน https://developers.line.biz/console/'
+        },
+        'ชื่อวิชาที่ 2 ที่ตั้งใน Glitch': {
+            spreadsheetId: 'ไอดีของชีทที่ต้องการให้ตรวจสอบการเข้าเรียน',
+            botLineToken: 'โทเค็นของบอทที่สร้างใน https://developers.line.biz/console/',
+            botLineUserID: 'ไอดีของบอทที่สร้างใน https://developers.line.biz/console/'
+        }
+    };
+
+    // ตรวจสอบวิชาใน map
+    if (!sheetMap[subject]) {
+        return ContentService.createTextOutput(
+            JSON.stringify({ message: "วิชาที่ระบุหรือที่เขียนมาไม่ถูกต้อง" })
+        ).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // ดึงข้อมูลวิชาจาก sheetMap
+    const { spreadsheetId, botLineToken, botLineUserID } = sheetMap[subject];
+    const sheet = SpreadsheetApp.openById(spreadsheetId).getActiveSheet();
+
+    const namesRange = sheet.getRange('E2:E27').getValues();
+    const checkboxesRange = sheet.getRange('F2:F27').getValues();
+
+    const uncheckedStudents = [];
+
+    // ตรวจสอบนักเรียนที่ไม่ได้เช็คชื่อ
+    for (let i = 0; i < namesRange.length; i++) {
+        const studentName = namesRange[i][0];
+        const checkboxValue = checkboxesRange[i][0];
+
+        if (!checkboxValue) {
+            uncheckedStudents.push(`- ${studentName}`);
+        }
+    }
+
+    // สร้างข้อความแจ้งเตือน
+    if (uncheckedStudents.length > 0) {
+        const message = `รายชื่อนักเรียนที่ไม่เข้าเรียนในวิชา \n"${subject}" \n\n${uncheckedStudents.join('\n')}`;
+        sendMessageToLine(message, botLineToken, botLineUserID);
+
+        return ContentService.createTextOutput(
+            JSON.stringify({ message: "ส่งข้อความเรียบร้อย" })
+        ).setMimeType(ContentService.MimeType.JSON);
+    } else {
+        return ContentService.createTextOutput(
+            JSON.stringify({ message: "ไม่มีนักเรียนที่ไม่ได้มาเรียน" })
+        ).setMimeType(ContentService.MimeType.JSON);
+    }
+}
+
+function sendMessageToLine(message, botLineToken, botLineUserID) {
+    const url = 'https://api.line.me/v2/bot/message/push';
+
+    const payload = {
+        to: botLineUserID,
+        messages: [
+            {
+                type: 'text',
+                text: message
+            }
+        ]
+    };
+
+    const options = {
+        method: 'post',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + botLineToken
+        },
+        payload: JSON.stringify(payload)
+    };
+
+    const response = UrlFetchApp.fetch(url, options);
+
+    return ContentService.createTextOutput(
+        JSON.stringify({ message: response.getContentText() })
+    ).setMimeType(ContentService.MimeType.JSON);
+}
