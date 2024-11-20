@@ -1,0 +1,41 @@
+function saveDailyData() {
+    const sheetIds = [
+        'ไอดีของชีทที่ต้องการให้เซฟข้อมูลทุกวัน', // id ของชีทที่ต้องการให้เซฟข้อมูลทุกวัน
+        'ไอดีของชีทที่ต้องการให้เซฟข้อมูลทุกวัน'  // id ของชีทที่ต้องการให้เซฟข้อมูลทุกวัน
+    ];
+
+    const date = new Date();
+    const formattedDate = Utilities.formatDate(date, Session.getScriptTimeZone(), 'dd-MM-yyyy'); // สร้างชื่อเเผ่นงานด้วยเวลาของวันนั้น
+    const newSheetName = `${formattedDate}`;
+
+    sheetIds.forEach(sheetId => {
+        const spreadsheet = SpreadsheetApp.openById(sheetId);
+        const mainSheet = spreadsheet.getActiveSheet(); // แผ่นงานหลักที่มีข้อมูล
+        const lastRow = mainSheet.getLastRow(); // หาแถวสุดท้ายที่มีข้อมูล
+
+        // ตรวจสอบว่ามีแผ่นงานที่ชื่อซ้ำหรือไม่
+        let newSheet = spreadsheet.getSheetByName(newSheetName);
+        if (!newSheet) {
+            newSheet = spreadsheet.insertSheet(newSheetName); // สร้างแผ่นงานใหม่
+        } else {
+            newSheet.clear();
+        }
+
+        const headerRange = mainSheet.getRange('A1:F1');
+        headerRange.copyTo(newSheet.getRange(1, 1));
+
+        // คัดลอกข้อมูลจากแผ่นงานหลักไปยังแผ่นงานใหม่
+        const rangeToCopy = mainSheet.getRange(`A2:F${lastRow}`);
+        rangeToCopy.copyTo(newSheet.getRange(2, 1));
+
+        // รีเซ็ตข้อมูลในแผ่นงานหลัก
+        for (let i = 2; i <= lastRow; i++) {
+            mainSheet.getRange(i, 1).setValue("");
+            mainSheet.getRange(i, 6).setValue(false);
+        }
+
+        // รีเซ็ตพื้นหลังของ A2:F27 ให้กลับไปเป็นปกติ
+        const resetRange = mainSheet.getRange('A2:F27');
+        resetRange.setBackground(null);
+    });
+}
